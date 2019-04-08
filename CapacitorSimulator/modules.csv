@@ -1,0 +1,4 @@
+name,quantity,cycle_time,reload_time,max_charges,local,cap_usage
+sansha_rr,3,3.39,0,0,true,-841
+sansha_local,2,5,0,0,true,-1748
+bhaal_heavy_nos_pulsar,56,6.19,0,0,false,-272
