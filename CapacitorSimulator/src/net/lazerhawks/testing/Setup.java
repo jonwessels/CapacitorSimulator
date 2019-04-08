@@ -79,7 +79,7 @@ public class Setup {
 				{
 					System.out.println("Ship: " + ship[0]);
 	
-					targetShip = new Ship(ship[0], new BigDecimal(ship[1]), new BigDecimal(ship[2]));		
+					targetShip = new Ship(ship[0], new BigDecimal(ship[1]), new BigDecimal(ship[2]), new BigDecimal(ship[3]));		
 				}
 
 			}

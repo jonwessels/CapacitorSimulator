@@ -269,7 +269,10 @@ public class Simulation {
 			//Add the module back into the queue
 			remoteQueue.add(moduleRemote);
 			//alter capacitorChange
-			capacitorChange = capacitorChange.add(moduleRemote.getCapacitorUsage());
+			
+			BigDecimal currentChange = moduleRemote.getCapacitorUsage().multiply(targetShip.getNeutResistance(), mc).setScale(4, RoundingMode.HALF_DOWN);
+			
+			capacitorChange = capacitorChange.add(currentChange);
 			
 			
 			System.out.println("Current cap change: " + capacitorChange.toString());

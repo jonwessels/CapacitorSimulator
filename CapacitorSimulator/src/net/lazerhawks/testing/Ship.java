@@ -11,13 +11,15 @@ public class Ship {
 	private BigDecimal capacitorMax;
 	private BigDecimal capacitorCurrent;
 	private BigDecimal capacitorRechargeTime;
+	private BigDecimal neutResistance; //Will only be applied on remote negative cap effects
 	
-	public Ship(String _name, BigDecimal _capacitorMax, BigDecimal _capacitorRechargeTime)
+	public Ship(String _name, BigDecimal _capacitorMax, BigDecimal _capacitorRechargeTime, BigDecimal _neutResistance)
 	{
 		this.name = _name;
 		this.capacitorMax = _capacitorMax;
 		this.capacitorCurrent = capacitorMax; //Set initial cap to what maximum is
 		this.capacitorRechargeTime = _capacitorRechargeTime;
+		this.neutResistance = _neutResistance;
 	}
 	
 	public void changeCapacitorLevel(BigDecimal _value)
@@ -64,6 +66,14 @@ public class Ship {
 
 	public void setCapacitorRechargeTime(BigDecimal capacitorRechargeTime) {
 		this.capacitorRechargeTime = capacitorRechargeTime;
+	}
+
+	public BigDecimal getNeutResistance() {
+		return neutResistance;
+	}
+
+	public void setNeutResistance(BigDecimal neutResistance) {
+		this.neutResistance = neutResistance;
 	}
 
 }

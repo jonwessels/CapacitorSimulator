@@ -1,2 +1,2 @@
-name,max_cap,recharge_time
-ninazu,84375,3375
+name,max_cap,recharge_time,neut_resist
+ninazu,84375,3375,0.44
