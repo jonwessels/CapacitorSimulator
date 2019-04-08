@@ -22,7 +22,7 @@ public class Simulation {
 
 
 	static BigDecimal retryTime = new BigDecimal(0.1);
-	
+
 	MathContext mc = new MathContext(12,RoundingMode.HALF_UP);
 
 
@@ -49,7 +49,7 @@ public class Simulation {
 		moduleSummary();
 
 	}
-	
+
 	private void moduleSummary()
 	{
 		//Check consumer uptime
@@ -60,18 +60,44 @@ public class Simulation {
 			System.out.println("Module: " + consumer.getName());
 			System.out.println("Attempts: " + consumer.getAttempts());
 			System.out.println("Failures: " + consumer.getFailures());
-			
+
 			//BigDecimal downtime = new BigDecimal(retryTime * consumer.getFailures());
 			BigDecimal totalUptime = new BigDecimal((consumer.getAttempts()-consumer.getFailures()), mc).multiply(consumer.getCycleTime(), mc).setScale(2, RoundingMode.HALF_DOWN);
-			
+
 			System.out.println("Total Uptime(s): " + totalUptime.toString());
-			
+
 			BigDecimal percentUptime = totalUptime.divide(new BigDecimal(maxTicks), mc).multiply(new BigDecimal(100), mc).setScale(2, RoundingMode.HALF_DOWN);
-			
+
 			System.out.println("Uptime(%): " + percentUptime.toString());
-			
+
 			System.out.println("---------------------");
+
+		}
+
+		//Check generator usage
+		while(localGenerateQueue.peek() != null)
+		{
 			
+			//Attempts = normal
+			//Failures = reload
+			
+			Module generator = localGenerateQueue.poll();
+			System.out.println("---------------------");
+			System.out.println("Module: " + generator.getName());
+			System.out.println("Normal Activations: " + generator.getAttempts());
+			System.out.println("Reload Activations: " + generator.getFailures());
+
+														//We add the reloads as well, cause the module had to do a normal cycle before reloading
+			BigDecimal totalNormalTime = new BigDecimal(generator.getAttempts()+generator.getFailures()).multiply(generator.getCycleTime());
+			BigDecimal totalReloadTime = new BigDecimal(generator.getFailures()).multiply(generator.getReloadTime());
+			BigDecimal totalIdleTime = new BigDecimal(maxTicks).subtract(totalNormalTime.add(totalReloadTime));
+
+			System.out.println("Total Activation Time(s): " + totalNormalTime.toString());
+			System.out.println("Total Reload Time(s): " + totalReloadTime.toString());
+			System.out.println("Total Idle Time(s): " + totalIdleTime.toString());
+
+			System.out.println("---------------------");
+
 		}
 	}
 
@@ -88,7 +114,7 @@ public class Simulation {
 
 		//First process local
 		processLocalQueue(currentTick);
-		
+
 		//Then process remotes
 		processRemoteQueue(currentTick);
 
@@ -166,8 +192,8 @@ public class Simulation {
 						//Otherwise use reload time
 						else if(moduleGenerate.getCurrentCharges() == 0)
 						{
-							System.out.println("Reloading");
-							moduleGenerate.setNextCycleTime(moduleGenerate.getNextCycleTime().add(moduleGenerate.getReloadTime()));
+							System.out.println("Reloading");										//Have to finish cycle before you can reload
+							moduleGenerate.setNextCycleTime(moduleGenerate.getNextCycleTime().add(moduleGenerate.getCycleTime()).add(moduleGenerate.getReloadTime()));
 							//Counting reload as failures purely to be able to record the different time. Is not an actual 'failure'
 							moduleGenerate.setFailures(moduleGenerate.getFailures() + 1);
 
@@ -269,15 +295,15 @@ public class Simulation {
 			//Add the module back into the queue
 			remoteQueue.add(moduleRemote);
 			//alter capacitorChange
-			
-			BigDecimal currentChange = moduleRemote.getCapacitorUsage().multiply(targetShip.getNeutResistance(), mc).setScale(4, RoundingMode.HALF_DOWN);
-			
+
+			BigDecimal currentChange = moduleRemote.getCapacitorUsage().subtract(moduleRemote.getCapacitorUsage().multiply(targetShip.getNeutResistance(), mc)).setScale(4, RoundingMode.HALF_DOWN);
+
 			capacitorChange = capacitorChange.add(currentChange);
-			
-			
+
+
 			System.out.println("Current cap change: " + capacitorChange.toString());
 		}
-		
+
 		//Change ship capacitor
 		targetShip.changeCapacitorLevel(capacitorChange);
 	}
@@ -289,7 +315,7 @@ public class Simulation {
 		localConsumeQueue.clear();
 		localGenerateQueue.clear();
 		remoteQueue.clear();
-		
+
 		Random rand = new Random();
 
 		for(Module module :moduleList)
@@ -317,12 +343,12 @@ public class Simulation {
 				//Trying to spread out modules at start
 				//Might need to implement proper stagger method
 				//Otherwise, can run multiple simulations with same data, and generate averages
-				
-				
+
+
 				BigDecimal cycleSpread = new BigDecimal(rand.nextInt(module.getCycleTime().intValue()));
-				
+
 				module.setNextCycleTime(module.getCycleTime().add(cycleSpread));
-				
+
 				remoteQueue.add(module);
 			}
 		}
