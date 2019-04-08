@@ -1,15 +1,18 @@
 package net.lazerhawks.testing;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class Ship {
 	
 	private String name;
 	
 	//Will also be used to calculate cap passive regen
-	private Double capacitorMax;
-	private Double capacitorCurrent;
-	private Double capacitorRechargeTime;
+	private BigDecimal capacitorMax;
+	private BigDecimal capacitorCurrent;
+	private BigDecimal capacitorRechargeTime;
 	
-	public Ship(String _name, Double _capacitorMax, Double _capacitorRechargeTime)
+	public Ship(String _name, BigDecimal _capacitorMax, BigDecimal _capacitorRechargeTime)
 	{
 		this.name = _name;
 		this.capacitorMax = _capacitorMax;
@@ -17,17 +20,17 @@ public class Ship {
 		this.capacitorRechargeTime = _capacitorRechargeTime;
 	}
 	
-	public void changeCapacitorLevel(Double _value)
+	public void changeCapacitorLevel(BigDecimal _value)
 	{
-		capacitorCurrent = capacitorCurrent + _value;
+		capacitorCurrent = capacitorCurrent.add(_value).setScale(4, RoundingMode.HALF_DOWN);
 		
-		if(capacitorCurrent > capacitorMax)
+		if(capacitorCurrent.compareTo(capacitorMax) > 0)
 		{
 			capacitorCurrent = capacitorMax;
 		}
-		else if(capacitorCurrent < 0)
+		else if(capacitorCurrent.compareTo(BigDecimal.ZERO) < 0)
 		{
-			capacitorCurrent = 0.00d;
+			capacitorCurrent = new BigDecimal(0.00).setScale(4, RoundingMode.HALF_DOWN);
 		}
 	}
 
@@ -39,27 +42,27 @@ public class Ship {
 		this.name = name;
 	}
 
-	public Double getCapacitorMax() {
+	public BigDecimal getCapacitorMax() {
 		return capacitorMax;
 	}
 
-	public void setCapacitorMax(Double capacitorMax) {
+	public void setCapacitorMax(BigDecimal capacitorMax) {
 		this.capacitorMax = capacitorMax;
 	}
 
-	public Double getCapacitorCurrent() {
+	public BigDecimal getCapacitorCurrent() {
 		return capacitorCurrent;
 	}
 
-	public void setCapacitorCurrent(Double capacitorCurrent) {
+	public void setCapacitorCurrent(BigDecimal capacitorCurrent) {
 		this.capacitorCurrent = capacitorCurrent;
 	}
 
-	public Double getCapacitorRechargeTime() {
+	public BigDecimal getCapacitorRechargeTime() {
 		return capacitorRechargeTime;
 	}
 
-	public void setCapacitorRechargeTime(Double capacitorRechargeTime) {
+	public void setCapacitorRechargeTime(BigDecimal capacitorRechargeTime) {
 		this.capacitorRechargeTime = capacitorRechargeTime;
 	}
 

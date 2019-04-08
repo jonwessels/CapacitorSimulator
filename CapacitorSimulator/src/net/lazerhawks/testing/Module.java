@@ -1,15 +1,18 @@
 package net.lazerhawks.testing;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class Module implements Comparable<Module>{
 	
 	private String name;
-	private Double cycleTime;
-	private Double reloadTime;
+	private BigDecimal cycleTime;
+	private BigDecimal reloadTime;
 	private Integer maxCharges;
 	private Integer currentCharges;
 	private Boolean localEffect;
-	private Double capacitorUsage;
-	private Double nextCycleTime;
+	private BigDecimal capacitorUsage;
+	private BigDecimal nextCycleTime;
 	
 	private Integer attempts;
 	private Integer failures;
@@ -17,7 +20,7 @@ public class Module implements Comparable<Module>{
 	public Module()
 	{	
 		//0 = constant
-		this.reloadTime = 0.00d;
+		this.reloadTime = new BigDecimal(0).setScale(4, RoundingMode.HALF_DOWN);
 		
 		//0 = doesn't use charges
 		this.maxCharges = 0;
@@ -42,20 +45,20 @@ public class Module implements Comparable<Module>{
 		this.name = name;
 	}
 
-	public Double getCycleTime() {
+	public BigDecimal getCycleTime() {
 		return cycleTime;
 	}
 
-	public void setCycleTime(Double cycleTime) {
+	public void setCycleTime(BigDecimal cycleTime) {
 		this.cycleTime = cycleTime;
 		//this.nextCycleTime = cycleTime;	//Should actually do an initial pass on all modules before first queue sort
 	}
 
-	public Double getReloadTime() {
+	public BigDecimal getReloadTime() {
 		return reloadTime;
 	}
 
-	public void setReloadTime(Double reloadTime) {
+	public void setReloadTime(BigDecimal reloadTime) {
 		this.reloadTime = reloadTime;
 	}
 
@@ -67,11 +70,11 @@ public class Module implements Comparable<Module>{
 		this.localEffect = localEffect;
 	}
 
-	public Double getCapacitorUsage() {
+	public BigDecimal getCapacitorUsage() {
 		return capacitorUsage;
 	}
 
-	public void setCapacitorUsage(Double capacitorUsage) {
+	public void setCapacitorUsage(BigDecimal capacitorUsage) {
 		this.capacitorUsage = capacitorUsage;
 	}
 
@@ -92,28 +95,17 @@ public class Module implements Comparable<Module>{
 	}
 
 
-	public Double getNextCycleTime() {
+	public BigDecimal getNextCycleTime() {
 		return nextCycleTime;
 	}
 
-	public void setNextCycleTime(Double nextCycleTime) {
+	public void setNextCycleTime(BigDecimal nextCycleTime) {
 		this.nextCycleTime = nextCycleTime;
 	}
 	
 	public int compareTo(Module compareModule) {
 		
-		if(compareModule.getNextCycleTime() < this.getNextCycleTime())
-		{
-			return 1;
-		}
-		else if(compareModule.getNextCycleTime() > this.getNextCycleTime())
-		{
-			return -1;
-		}
-		else
-		{
-			return 0;
-		}
+		return this.nextCycleTime.compareTo(compareModule.nextCycleTime);
 		
 	}
 

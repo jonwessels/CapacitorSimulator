@@ -4,11 +4,12 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Setup {
-	
 
 	public static void main( String[ ] args ) 
 	{
@@ -18,6 +19,7 @@ public class Setup {
 		String directory = System.getProperty("user.dir");
 
 		System.out.println("Directory: " + directory);
+		
 
 
 		String csvModules = directory + "/modules.csv";
@@ -51,11 +53,11 @@ public class Setup {
 					{
 						Module csvModule = new Module();
 						csvModule.setName(module[0]);
-						csvModule.setCycleTime(Double.parseDouble(module[2]));
-						csvModule.setReloadTime(Double.parseDouble(module[3]));
+						csvModule.setCycleTime(new BigDecimal(module[2]));
+						csvModule.setReloadTime(new BigDecimal(module[3]));
 						csvModule.setMaxCharges(Integer.valueOf(module[4]));
 						csvModule.setLocalEffect(Boolean.parseBoolean(module[5]));
-						csvModule.setCapacitorUsage(Double.parseDouble(module[6]));
+						csvModule.setCapacitorUsage(new BigDecimal(module[6]));
 						
 						moduleList.add(csvModule);
 					}
@@ -77,7 +79,7 @@ public class Setup {
 				{
 					System.out.println("Ship: " + ship[0]);
 	
-					targetShip = new Ship(ship[0], Double.parseDouble(ship[1]), Double.parseDouble(ship[2]));		
+					targetShip = new Ship(ship[0], new BigDecimal(ship[1]), new BigDecimal(ship[2]));		
 				}
 
 			}

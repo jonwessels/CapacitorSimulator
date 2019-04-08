@@ -1,5 +1,8 @@
 package net.lazerhawks.testing;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Random;
@@ -18,7 +21,9 @@ public class Simulation {
 	private PriorityQueue<Module> remoteQueue = new PriorityQueue<Module>(); //Will always happen, regardless of local status
 
 
-	static double retryTime = 0.1;
+	static BigDecimal retryTime = new BigDecimal(0.1);
+	
+	MathContext mc = new MathContext(12,RoundingMode.HALF_UP);
 
 
 	public Simulation(Integer _maxTicks, Ship _targetShip, List<Module> _moduleList)
@@ -56,14 +61,14 @@ public class Simulation {
 			System.out.println("Attempts: " + consumer.getAttempts());
 			System.out.println("Failures: " + consumer.getFailures());
 			
-			Double downtime = retryTime * consumer.getFailures();
-			Double totalUptime = (consumer.getAttempts()-consumer.getFailures()) * consumer.getCycleTime();
+			//BigDecimal downtime = new BigDecimal(retryTime * consumer.getFailures());
+			BigDecimal totalUptime = new BigDecimal((consumer.getAttempts()-consumer.getFailures()), mc).multiply(consumer.getCycleTime(), mc).setScale(2, RoundingMode.HALF_DOWN);
 			
-			System.out.println("Total Uptime(s): " + (double) Math.round(totalUptime));
+			System.out.println("Total Uptime(s): " + totalUptime.toString());
 			
-			Double percentUptime = (totalUptime/maxTicks) * 100;
+			BigDecimal percentUptime = totalUptime.divide(new BigDecimal(maxTicks), mc).multiply(new BigDecimal(100), mc).setScale(2, RoundingMode.HALF_DOWN);
 			
-			System.out.println("Uptime(%): " + (double) Math.round(percentUptime));
+			System.out.println("Uptime(%): " + percentUptime.toString());
 			
 			System.out.println("---------------------");
 			
@@ -101,7 +106,7 @@ public class Simulation {
 		System.out.println("Running local modules");
 
 		//Check if head of queue can happen within this tick
-		while(localConsumeQueue.peek().getNextCycleTime() <= serverTick)
+		while(localConsumeQueue.peek().getNextCycleTime().compareTo(new BigDecimal(serverTick)) <= 0)
 		{
 
 			Module peek = localConsumeQueue.peek();
@@ -111,14 +116,14 @@ public class Simulation {
 			System.out.println("Cap available: " + targetShip.getCapacitorCurrent());
 
 			//Check if there is enough capacitor
-			if(localConsumeQueue.peek().getCapacitorUsage() + targetShip.getCapacitorCurrent() >= 0)
+			if(localConsumeQueue.peek().getCapacitorUsage().add(targetShip.getCapacitorCurrent()).compareTo(BigDecimal.ZERO) >= 0)
 			{
 				System.out.println("Enough cap");
 
 				//Remove module from front of queue
 				Module moduleConsume = localConsumeQueue.poll();
 				//Update it's next cycle time
-				moduleConsume.setNextCycleTime(moduleConsume.getNextCycleTime()+moduleConsume.getCycleTime());
+				moduleConsume.setNextCycleTime(moduleConsume.getNextCycleTime().add(moduleConsume.getCycleTime()));
 				moduleConsume.setAttempts(moduleConsume.getAttempts() + 1);
 				//Add the module back into the queue
 				localConsumeQueue.add(moduleConsume);
@@ -133,7 +138,7 @@ public class Simulation {
 
 				//Check if there are any generators available at the time of the current consumer
 				//Make sure generator is able to activate at the time the consumer is activating
-				if(!localGenerateQueue.isEmpty() && localGenerateQueue.peek().getNextCycleTime() <= localConsumeQueue.peek().getNextCycleTime())
+				if(!localGenerateQueue.isEmpty() && localGenerateQueue.peek().getNextCycleTime().compareTo(localConsumeQueue.peek().getNextCycleTime()) <= 0)
 				{
 					//Remove module from front of queue
 					Module moduleGenerate = localGenerateQueue.poll();
@@ -155,14 +160,14 @@ public class Simulation {
 						if(moduleGenerate.getCurrentCharges() > 0)
 						{
 							System.out.println("Cycling normally");
-							moduleGenerate.setNextCycleTime(moduleGenerate.getNextCycleTime()+moduleGenerate.getCycleTime());
+							moduleGenerate.setNextCycleTime(moduleGenerate.getNextCycleTime().add(moduleGenerate.getCycleTime()));
 							moduleGenerate.setAttempts(moduleGenerate.getAttempts() + 1);
 						}
 						//Otherwise use reload time
 						else if(moduleGenerate.getCurrentCharges() == 0)
 						{
 							System.out.println("Reloading");
-							moduleGenerate.setNextCycleTime(moduleGenerate.getNextCycleTime()+moduleGenerate.getReloadTime());
+							moduleGenerate.setNextCycleTime(moduleGenerate.getNextCycleTime().add(moduleGenerate.getReloadTime()));
 							//Counting reload as failures purely to be able to record the different time. Is not an actual 'failure'
 							moduleGenerate.setFailures(moduleGenerate.getFailures() + 1);
 
@@ -175,7 +180,7 @@ public class Simulation {
 					else
 					{
 						System.out.println("Doesn't use charges");
-						moduleGenerate.setNextCycleTime(moduleGenerate.getNextCycleTime()+moduleGenerate.getCycleTime());
+						moduleGenerate.setNextCycleTime(moduleGenerate.getNextCycleTime().add(moduleGenerate.getCycleTime()));
 						moduleGenerate.setAttempts(moduleGenerate.getAttempts() + 1);
 					}
 
@@ -193,12 +198,12 @@ public class Simulation {
 					System.out.println("Cap available: " + targetShip.getCapacitorCurrent());
 
 					//Check if there is enough capacitor
-					if(localConsumeQueue.peek().getCapacitorUsage() + targetShip.getCapacitorCurrent() >= 0)
+					if(localConsumeQueue.peek().getCapacitorUsage().add(targetShip.getCapacitorCurrent()).compareTo(BigDecimal.ZERO) >= 0)
 					{
 						//Remove module from front of queue
 						Module moduleConsume = localConsumeQueue.poll();
 						//Update it's next cycle time
-						moduleConsume.setNextCycleTime(moduleConsume.getNextCycleTime()+moduleConsume.getCycleTime());
+						moduleConsume.setNextCycleTime(moduleConsume.getNextCycleTime().add(moduleConsume.getCycleTime()));
 						moduleConsume.setAttempts(moduleConsume.getAttempts() + 1);
 						//Add the module back into the queue
 						localConsumeQueue.add(moduleConsume);
@@ -215,7 +220,7 @@ public class Simulation {
 						//Remove module from front of queue
 						Module moduleConsume = localConsumeQueue.poll();
 						//Update it's next cycle time slightly, allowing other modules a chance to activate
-						moduleConsume.setNextCycleTime(moduleConsume.getNextCycleTime() + retryTime);
+						moduleConsume.setNextCycleTime(moduleConsume.getNextCycleTime().add(retryTime));
 						moduleConsume.setAttempts(moduleConsume.getAttempts() + 1);
 						moduleConsume.setFailures(moduleConsume.getFailures() + 1);
 						//Add the module back into the queue
@@ -230,7 +235,7 @@ public class Simulation {
 					//Remove module from front of queue
 					Module moduleConsume = localConsumeQueue.poll();
 					//Update it's next cycle time slightly, allowing other modules a chance to activate
-					moduleConsume.setNextCycleTime(moduleConsume.getNextCycleTime() + retryTime);
+					moduleConsume.setNextCycleTime(moduleConsume.getNextCycleTime().add(retryTime));
 					moduleConsume.setAttempts(moduleConsume.getAttempts() + 1);
 					moduleConsume.setFailures(moduleConsume.getFailures() + 1);
 					//Add the module back into the queue
@@ -246,10 +251,10 @@ public class Simulation {
 
 		System.out.println("Running remote modules");
 
-		Double capacitorChange = 0.00d;
+		BigDecimal capacitorChange = new BigDecimal(0);
 
 		//Check if head of queue can happen within this tick
-		while(remoteQueue.peek().getNextCycleTime() <= serverTick)
+		while(remoteQueue.peek().getNextCycleTime().compareTo(new BigDecimal(serverTick)) <= 0)
 		{
 
 			Module peek = remoteQueue.peek();
@@ -260,14 +265,14 @@ public class Simulation {
 			//Remove module from front of queue
 			Module moduleRemote = remoteQueue.poll();
 			//Update it's next cycle time
-			moduleRemote.setNextCycleTime(moduleRemote.getNextCycleTime()+moduleRemote.getCycleTime());
+			moduleRemote.setNextCycleTime(moduleRemote.getNextCycleTime().add(moduleRemote.getCycleTime()));
 			//Add the module back into the queue
 			remoteQueue.add(moduleRemote);
 			//alter capacitorChange
-			capacitorChange = capacitorChange + moduleRemote.getCapacitorUsage();
+			capacitorChange = capacitorChange.add(moduleRemote.getCapacitorUsage());
 			
 			
-			System.out.println("Current cap change: " + capacitorChange);
+			System.out.println("Current cap change: " + capacitorChange.toString());
 		}
 		
 		//Change ship capacitor
@@ -295,7 +300,7 @@ public class Simulation {
 			if(module.getLocalEffect())
 			{
 				//Does it generate cap, or use it
-				if(module.getCapacitorUsage() > 0)
+				if(module.getCapacitorUsage().compareTo(BigDecimal.ZERO) > 0)
 				{
 					localGenerateQueue.add(module);
 				}
@@ -309,7 +314,11 @@ public class Simulation {
 				//Trying to spread out modules at start
 				//Might need to implement proper stagger method
 				//Otherwise, can run multiple simulations with same data, and generate averages
-				module.setNextCycleTime(module.getCycleTime() + rand.nextInt(module.getCycleTime().intValue()));
+				
+				
+				BigDecimal cycleSpread = new BigDecimal(rand.nextInt(module.getCycleTime().intValue()));
+				
+				module.setNextCycleTime(module.getCycleTime().add(cycleSpread));
 				
 				remoteQueue.add(module);
 			}
@@ -322,15 +331,17 @@ public class Simulation {
 	}
 
 
-	private Double currentPassiveRegen()
+	private BigDecimal currentPassiveRegen()
 	{
 		//10*MaxCap/Time * (sqrt(CurCap/MaxCap) - (CurCap/MaxCap))
 
-		Double currentPercent = targetShip.getCapacitorCurrent() / targetShip.getCapacitorMax();
-		Double pairs = (Math.sqrt(currentPercent)) - currentPercent;
-		Double capRegen = ((10 * targetShip.getCapacitorMax()) / targetShip.getCapacitorRechargeTime()) * pairs;
+		BigDecimal currentPercent = targetShip.getCapacitorCurrent().divide(targetShip.getCapacitorMax(), mc);
+		BigDecimal pairs = currentPercent.sqrt(mc).subtract(currentPercent);
+		BigDecimal capRegen = new BigDecimal(10).multiply(targetShip.getCapacitorMax()).divide(targetShip.getCapacitorRechargeTime());
+		capRegen = capRegen.multiply(pairs);
 
-		return (double) Math.round(capRegen);
+		//Use all decimals for calculations and return the rounded value to 4 decimals. Assume round down to get 'worst' case
+		return capRegen.setScale(4, RoundingMode.HALF_DOWN);
 
 	}
 
