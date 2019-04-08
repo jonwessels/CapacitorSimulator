@@ -1,4 +1,8 @@
 name,quantity,cycle_time,reload_time,max_charges,local,cap_usage
-sansha_rr,3,3.39,0,0,true,-841
-sansha_local,2,5,0,0,true,-1748
-bhaal_heavy_nos_pulsar,56,6.19,0,0,false,-272
+shadow_rr,3,1.91,0,0,true,-435
+shadow_local,2,11.2,0,0,true,-1900
+db_capital_booster,2,11,10,6,true,3200
+drac_heavy_booster,3,9,10,1,true,3200
+lesh_db_heavy_neut,18,24,0,0,false,-600
+lesh_meta_med_neut,36,12,0,0,false,-165
+bhaal_heavy_nos,21,6.19,0,0,false,-210
