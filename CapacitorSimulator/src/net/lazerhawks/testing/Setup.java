@@ -84,7 +84,7 @@ public class Setup {
 
 			}
 
-			Simulation simulation = new Simulation(3000, targetShip, moduleList);
+			Simulation simulation = new Simulation(3600, targetShip, moduleList);
 
 		} 
 		catch (FileNotFoundException e) 

@@ -84,11 +84,11 @@ public class Simulation {
 			Module generator = localGenerateQueue.poll();
 			System.out.println("---------------------");
 			System.out.println("Module: " + generator.getName());
-			System.out.println("Normal Activations: " + generator.getAttempts());
-			System.out.println("Reload Activations: " + generator.getFailures());
+			System.out.println("Activations: " + generator.getAttempts());
+			System.out.println("Reloads: " + generator.getFailures());
 
 														//We add the reloads as well, cause the module had to do a normal cycle before reloading
-			BigDecimal totalNormalTime = new BigDecimal(generator.getAttempts()+generator.getFailures()).multiply(generator.getCycleTime());
+			BigDecimal totalNormalTime = new BigDecimal(generator.getAttempts()).multiply(generator.getCycleTime());
 			BigDecimal totalReloadTime = new BigDecimal(generator.getFailures()).multiply(generator.getReloadTime());
 			BigDecimal totalIdleTime = new BigDecimal(maxTicks).subtract(totalNormalTime.add(totalReloadTime));
 
@@ -181,13 +181,14 @@ public class Simulation {
 						moduleGenerate.consumeCharge();
 
 						System.out.println("Charges left: " + moduleGenerate.getCurrentCharges());
+						
+						moduleGenerate.setAttempts(moduleGenerate.getAttempts() + 1);
 
 						//Use normal cycle time if still charges
 						if(moduleGenerate.getCurrentCharges() > 0)
 						{
 							System.out.println("Cycling normally");
 							moduleGenerate.setNextCycleTime(moduleGenerate.getNextCycleTime().add(moduleGenerate.getCycleTime()));
-							moduleGenerate.setAttempts(moduleGenerate.getAttempts() + 1);
 						}
 						//Otherwise use reload time
 						else if(moduleGenerate.getCurrentCharges() == 0)
@@ -364,9 +365,9 @@ public class Simulation {
 	{
 		//10*MaxCap/Time * (sqrt(CurCap/MaxCap) - (CurCap/MaxCap))
 
-		BigDecimal currentPercent = targetShip.getCapacitorCurrent().divide(targetShip.getCapacitorMax(), mc);
-		BigDecimal pairs = currentPercent.sqrt(mc).subtract(currentPercent);
-		BigDecimal capRegen = new BigDecimal(10).multiply(targetShip.getCapacitorMax()).divide(targetShip.getCapacitorRechargeTime());
+		BigDecimal currentPercent = targetShip.getCapacitorCurrent().divide(targetShip.getCapacitorMax(), mc).setScale(4, RoundingMode.HALF_DOWN);
+		BigDecimal pairs = currentPercent.sqrt(mc).subtract(currentPercent).setScale(4, RoundingMode.HALF_DOWN);
+		BigDecimal capRegen = new BigDecimal(10).multiply(targetShip.getCapacitorMax()).divide(targetShip.getCapacitorRechargeTime(), mc).setScale(4, RoundingMode.HALF_DOWN);
 		capRegen = capRegen.multiply(pairs);
 
 		//Use all decimals for calculations and return the rounded value to 4 decimals. Assume round down to get 'worst' case
